@@ -1,0 +1,19 @@
+target/
+*.class
+*.log
+
+# La config vit dans %LOCALAPPDATA%\SoundX, mais on ignore aussi
+# d'eventuelles anciennes copies locales
+soundx-config.json
+
+# Dossier "sounds" optionnel (mode portable) : contenu personnel
+sounds/*
+!sounds/README.txt
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
