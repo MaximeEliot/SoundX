@@ -89,6 +89,7 @@ public final class SoundboardUI extends JFrame {
     private final JComboBox<AudioDevice> inputBox = new JComboBox<>();
     private final JCheckBox micToggle = new JCheckBox("Renvoyer le micro vers la sortie");
     private final JSlider micVolume = new JSlider(0, 200, 100);
+    private final JCheckBox voiceToggle = new JCheckBox("Isolation de la voix");
     private final JLabel micStatus = new JLabel("Renvoi micro inactif.");
     private final LevelMeter micMeter = new LevelMeter();
 
@@ -294,6 +295,15 @@ public final class SoundboardUI extends JFrame {
         panel.add(Box.createVerticalStrut(4));
         JPanel micStatusRow = row();
         micStatusRow.add(sectionLabel(""));            // aligne sous les combos
+        voiceToggle.setOpaque(false);
+        voiceToggle.setFocusable(false);
+        voiceToggle.setToolTipText("<html>Retire le clavier et les bruits de fond du <b>micro seulement</b> :"
+                + "<br>les sons de la soundboard passent intacts.<br><br>"
+                + "Dans Discord, désactivez alors la suppression de bruit<br>"
+                + "(Paramètres ▸ Voix et vidéo ▸ Suppression du bruit : Aucune).</html>");
+        voiceToggle.addActionListener(e -> onVoiceToggle());
+        micStatusRow.add(voiceToggle);
+        micStatusRow.add(Box.createHorizontalStrut(8));
         micStatusRow.add(mutedLabel("Signal"));
         micStatusRow.add(micMeter);
         micStatusRow.add(Box.createHorizontalStrut(8));
@@ -610,6 +620,17 @@ public final class SoundboardUI extends JFrame {
         configManager.save();
     }
 
+    private void onVoiceToggle() {
+        boolean on = voiceToggle.isSelected();
+        audio.setVoiceIsolation(on);
+        voiceToggle.setForeground(on ? Theme.RED_BRIGHT : Theme.TEXT);
+        config.voiceIsolation = on;
+        configManager.save();
+        status.setText(on
+                ? "Isolation de la voix activée — pensez à couper la suppression de bruit de Discord."
+                : "Isolation de la voix désactivée.");
+    }
+
     private void updateMicStatus(String message, boolean active) {
         micBaseStatus = active ? message + "  —  parlez, le niveau doit bouger" : message;
         micStatus.setText(micBaseStatus);
@@ -645,6 +666,10 @@ public final class SoundboardUI extends JFrame {
         AudioDevice inSel = (AudioDevice) inputBox.getSelectedItem();
         boolean micOn = config.micPassthrough && inputBox.isEnabled() && inSel != null;
         micToggle.setSelected(micOn);
+
+        voiceToggle.setSelected(config.voiceIsolation);
+        voiceToggle.setForeground(config.voiceIsolation ? Theme.RED_BRIGHT : Theme.TEXT);
+        audio.setVoiceIsolation(config.voiceIsolation);
 
         // une seule (re)configuration du renvoi micro
         audio.configureMic(inSel == null ? null : inSel.getInfo(), micOn, mv / 100.0);
@@ -959,6 +984,8 @@ public final class SoundboardUI extends JFrame {
                         + "• MICRO : renvoyer le micro vers la meme sortie (micro + sons\n"
                         + "  arrivent ensemble dans le cable, comme Voicemod). Le vu-metre\n"
                         + "  \"Signal\" doit bouger quand vous parlez.\n"
+                        + "• Isolation de la voix : retire le clavier du micro seulement\n"
+                        + "  (RNNoise, Xiph) — coupez la suppression de bruit de Discord\n"
                         + "• STOP : coupe instantanement toutes les lectures de sons",
                 "A propos de SoundX", JOptionPane.INFORMATION_MESSAGE);
     }

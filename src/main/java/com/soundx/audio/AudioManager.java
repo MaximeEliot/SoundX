@@ -68,6 +68,7 @@ public final class AudioManager {
     private volatile Mixer.Info inputDevice;
     private volatile boolean micEnabled;
     private volatile double micVolume = 1.0;
+    private volatile boolean voiceIsolation;
     private MicWorker micWorker;
     private final AtomicLong micGeneration = new AtomicLong();
     private volatile MicStatusListener micStatusListener;
@@ -215,6 +216,22 @@ public final class AudioManager {
         return micVolume;
     }
 
+    /**
+     * Isolation de la voix sur le micro uniquement (les sons de la soundboard
+     * ne passent pas par ce traitement). Appliquee a chaud, sans redemarrage.
+     */
+    public void setVoiceIsolation(boolean enabled) {
+        this.voiceIsolation = enabled;
+        MicWorker w = micWorker;
+        if (w != null) {
+            w.isolateVoice = enabled;
+        }
+    }
+
+    public boolean isVoiceIsolation() {
+        return voiceIsolation;
+    }
+
     public boolean isMicRunning() {
         MicWorker w = micWorker;
         return w != null && w.isAlive();
@@ -259,9 +276,11 @@ public final class AudioManager {
                     return;
                 }
                 try {
-                    MicWorker w = new MicWorker(input, output, volume, this::publishMicStatus);
+                    MicWorker w = new MicWorker(input, output, volume, voiceIsolation,
+                            this::publishMicStatus);
                     w.start();
                     micWorker = w;
+                    w.isolateVoice = voiceIsolation; // bascule faite pendant l'ouverture
                 } catch (Exception e) {
                     publishMicStatus("Renvoi micro impossible : " + e.getMessage(), false);
                 }

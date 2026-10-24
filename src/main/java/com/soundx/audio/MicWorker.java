@@ -1,5 +1,7 @@
 package com.soundx.audio;
 
+import com.soundx.audio.voice.VoiceIsolator;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -30,10 +32,15 @@ final class MicWorker {
     volatile double gain;
     /** Niveau crete du signal capture (0.0 .. 1.0), AVANT gain, avec decroissance. */
     volatile double level;
+    /** Isolation de la voix (RNNoise + porte), basculable a chaud. */
+    volatile boolean isolateVoice;
+    /** Cree et utilise uniquement par le thread micro. */
+    private VoiceIsolator isolator;
 
-    MicWorker(Mixer.Info inputInfo, Mixer.Info outputInfo, double gain,
+    MicWorker(Mixer.Info inputInfo, Mixer.Info outputInfo, double gain, boolean isolateVoice,
               BiConsumer<String, Boolean> status) throws LineUnavailableException {
         this.gain = gain;
+        this.isolateVoice = isolateVoice;
         this.status = status;
 
         AudioFormat fmt = negotiate(inputInfo, outputInfo);
@@ -101,6 +108,15 @@ final class MicWorker {
                 }
                 double peak = peak16LE(buffer, n);
                 level = Math.max(peak, level * 0.75); // attaque rapide, chute douce
+
+                if (isolateVoice) {
+                    if (isolator == null) {
+                        isolator = new VoiceIsolator(format.getSampleRate(), format.getChannels());
+                    }
+                    isolator.process(buffer, n);
+                } else {
+                    isolator = null; // repart d'un etat propre a la prochaine activation
+                }
 
                 double g = gain;
                 if (Math.abs(g - 1.0) > 0.01) {

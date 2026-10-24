@@ -10,6 +10,9 @@ Soundboard native Windows, **sans limite de sons**, en **Java + Swing**.
 - **Renvoi micro (façon Voicemod)** : SoundX peut capturer votre micro et le
   réinjecter dans la **même** sortie, pour que **micro + sons** arrivent ensemble
   dans le câble virtuel.
+- **Isolation de la voix (anti-clavier)** : le micro passe par RNNoise (réseau de
+  neurones de Xiph, porté en Java pur) + une porte pilotée par la détection de voix,
+  **avant** d'être mélangé aux sons. Le clavier disparaît, les sons restent intacts.
 - **Écoute locale (monitoring)** : chaque son est joué en parallèle sur votre casque,
   pour que vous l'entendiez pendant qu'il part dans le câble.
 - **Bouton d'urgence STOP** : bouton UI **et** raccourci global dédié qui coupent
@@ -243,10 +246,15 @@ il faut que votre voix **et** les sons passent par le même câble.
 3. Dans **Discord** → *Paramètres → Voix et vidéo* → **Périphérique d'entrée** =
    `CABLE Output (VB-Audio Virtual Cable)`.
    Pensez à baisser la *sensibilité d'entrée* ou à utiliser *Push-to-talk* si besoin.
+4. Toujours dans Discord → *Voix et vidéo* → **Suppression du bruit = Aucune**
+   (Krisp efface aussi les sons de la soundboard). C'est SoundX qui s'en charge :
+   cochez **« Isolation de la voix »** sous le bloc MICRO — seul le micro est
+   débruité, les sons arrivent intacts dans le câble.
 
 > Votre voix : elle est captée normalement par votre casque (retour direct, aucune
 > latence) et, via le renvoi micro, réinjectée dans le câble pour Discord.
-> Le renvoi micro ajoute ~20–40 ms **uniquement côté Discord**, pas dans votre oreille.
+> Le renvoi micro ajoute ~20–40 ms **uniquement côté Discord**, pas dans votre oreille
+> (+40 ms avec l'isolation de la voix).
 > Si un jour vous voulez un vrai mixeur (plusieurs entrées/sorties, retour réglé au
 > casque), passez à **VoiceMeeter** — SoundX s'y branche comme n'importe quel périphérique.
 

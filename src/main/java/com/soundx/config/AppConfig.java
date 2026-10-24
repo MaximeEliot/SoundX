@@ -35,6 +35,9 @@ public final class AppConfig {
     /** Volume du renvoi micro, 0.0 .. 2.0 (1.0 = neutre). */
     public double micVolume = 1.0;
 
+    /** Isolation de la voix sur le micro (anti-clavier), sons non affectes. */
+    public boolean voiceIsolation = true;
+
     /** Raccourci global du bouton d'urgence STOP ; {@code null} = aucun. */
     public HotkeyData stopHotkey;
 
